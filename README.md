@@ -140,7 +140,9 @@ The **Code** tab of the Claude Desktop app is Claude Code: install exactly as fo
 
 ### claude.ai (web & desktop chat)
 
-1. Build the upload ZIP (the archive must contain the `blender-master/` folder at its top level):
+1. Download **[blender-master.zip](https://github.com/Ridwan1711/blender-master/releases/latest/download/blender-master.zip)** from the
+   [latest release](https://github.com/Ridwan1711/blender-master/releases/latest) — or build it yourself
+   (the archive must contain the `blender-master/` folder at its top level):
    ```bash
    git clone https://github.com/Ridwan1711/blender-master.git
    python blender-master/scripts/package_skill.py      # -> blender-master/dist/blender-master.zip
@@ -353,7 +355,7 @@ See [references/compatibility.md](references/compatibility.md) for the full API 
 | Agent doesn't see the skill | Folder must be named `blender-master` and contain `SKILL.md` (uppercase); check the path for your tool above; restart the tool / start a new session. |
 | `Blender not found` | Set `BLENDER_PATH` to the executable (e.g. `C:\Program Files\Blender Foundation\Blender 4.5\blender.exe`, `/Applications/Blender.app/Contents/MacOS/Blender`). |
 | `python` not found | Install Python 3.8+ or call `python3` / `py`. |
-| claude.ai upload rejected | Use `scripts/package_skill.py` (folder must be the ZIP's top-level entry; description ≤ 200 chars). |
+| claude.ai upload rejected | Use the release ZIP or `scripts/package_skill.py` (folder must be the ZIP's top-level entry; description ≤ 200 chars). |
 | EEVEE first render is slow | Shader compilation on first use (26–38 s on an old GPU); later frames are fast. |
 | GPU out of memory | `BKIT_DEVICE=CPU` environment variable, or lower resolution/samples. |
 | Anything else | [references/troubleshooting.md](references/troubleshooting.md) (symptom → cause → fix). |
@@ -408,8 +410,9 @@ git clone https://github.com/Ridwan1711/blender-master.git "$HOME\.claude\skills
 python "$HOME\.claude\skills\blender-master\scripts\bk.py" probe
 ```
 
-**claude.ai (web/desktop chat):** jalankan `python scripts/package_skill.py`, lalu unggah
-`dist/blender-master.zip` di **Customize → Skills → + → Create skill → Upload a skill**
+**claude.ai (web/desktop chat):** unduh [blender-master.zip](https://github.com/Ridwan1711/blender-master/releases/latest/download/blender-master.zip) dari halaman
+[Releases](https://github.com/Ridwan1711/blender-master/releases/latest) (atau buat sendiri dengan
+`python scripts/package_skill.py`), lalu unggah di **Customize → Skills → + → Create skill → Upload a skill**
 (aktifkan dulu eksekusi kode di **Settings → Capabilities**). Catatan: di claude.ai tidak ada Blender,
 jadi Claude hanya bisa membuatkan skrip dan panduan, tidak bisa me-render.
 
