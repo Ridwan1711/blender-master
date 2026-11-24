@@ -66,6 +66,21 @@ full log path it prints, `bk.py inspect`, and a render/preview you have actually
 | Objects "below floor" by several cm | bbox measurement on rotated bodies | `world_bounds(exact=True)` before concluding tunnelling |
 | Real tunnelling | thin colliders, fast bodies | slab floors with BOX, more substeps, bigger margins |
 
+## Image-to-3D (details: `image-to-3d.md`)
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Whole model the wrong size | scale anchor taken from a region another part splits (door through a plinth) | anchor where nothing overhangs or splits: ground-level silhouette, body height |
+| One "part" swallows the frame / door | connected components merge touching strokes | per-class masks; `IR.opening` for solid blobs, `straight_members` / `line_segments` for strokes |
+| IoU low but the model looks right | scale-free compare rescaled for a part one view lacks | `compare_views(ref_m_per_px=...)` when the drawing scale is known; read the diff sheet |
+| Details (eyes, logos) beside the painted ones on an AI mesh | bbox mapping skewed by ears/tails | find them in `render_colour` of the model's own texture; else `register_view` |
+| AI model faces backwards | one silhouette cannot tell front from back | `align_to_reference` colour tie-break; check the beauty render |
+| Streaks / dark fans around boolean holes | custom normals made before the cut | shade sharp-by-angle + weighted normals AFTER booleans |
+| Non-manifold after decimating an inflated/thin mesh | knife-edge rim folds | voxel remesh before decimating (`inflate_from_image` does) |
+| `check.py` says `none` for every model | GPU too old / driver CUDA too low / not enough RAM | Mode 1/2; do not install. Explain the reasons it lists |
+| Installed model "not found" from another app (Windows) | AppData virtualised for packaged apps | home is `~/.cache/blender-master/ai3d` (or `BKIT_AI3D_HOME`) |
+| AI run dies / hangs | RAM, timeout | `--mc-res 128`, close other apps; it runs in its own process so Blender is safe |
+
 ## When stuck
 
 1. Reduce: reproduce in a tiny `bk.py exec` against the saved `.blend`.

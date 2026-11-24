@@ -2,7 +2,7 @@
 
 ## Engine choice
 
-| Engine | Use | Measured here (Ryzen 7 1700 / GTX 750 Ti 2 GB) |
+| Engine | Use | Measured here (Ryzen 7 1700 / GTX 750 Ti 4 GB) |
 |---|---|---|
 | Workbench | geometry/layout previews, contact sheets | ~0.5-2 s per view |
 | EEVEE Next (`compat.set_engine(sc, "EEVEE")`) | animation, stylised, fast look-dev | 1st frame 26-38 s (shader compile), then ~4.2 s/frame 960x540 with DOF + motion blur (S05) |

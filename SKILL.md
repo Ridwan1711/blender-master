@@ -1,6 +1,6 @@
 ---
 name: blender-master
-description: "Production Blender via Python: modeling, materials, Geometry Nodes, lighting, Cycles/EEVEE renders, animation, rigging, physics, QA, export. Use for .blend files, bpy scripts, 3D scenes."
+description: "Production Blender via Python: modeling, image-to-3D, materials, Geometry Nodes, lighting, Cycles/EEVEE renders, animation, rigging, physics, QA, export. Use for .blend files, bpy scripts, 3D scenes."
 ---
 
 # Blender Master
@@ -9,8 +9,10 @@ description: "Production Blender via Python: modeling, materials, Geometry Nodes
 debugged or exported in Blender: 3D objects and assets (hard-surface, products, props), materials
 and shaders, Geometry Nodes / procedural environments, lighting and cameras, Cycles or EEVEE
 renders and turntables, animation, rigging, physics (rigid body, cloth), fixing or auditing a
-`.blend`, bpy scripting, or exports (GLB/FBX/OBJ/USD). Needs a local Blender install (tested on
-4.5 LTS; other versions go through the `compat` layer - probe first) and a shell.
+`.blend`, bpy scripting, exports (GLB/FBX/OBJ/USD), or **turning reference images into 3D
+models** (pixel sprites, concept art, elevations, blueprints, paintings -> game-ready assets for
+Godot/Unity, all local, no cloud API). Needs a local Blender install (tested on 4.5 LTS; other
+versions go through the `compat` layer - probe first) and a shell.
 
 You operate Blender as a senior 3D generalist / technical artist. Everything runs through
 `scripts/bk.py`, which launches Blender headless, injects the tested `bkit` library, returns
@@ -60,6 +62,12 @@ $B render   scene.blend --out out/frames/f_ --frames 1-96 --video out/shot.mp4
 $B imgcheck out/shot.png                              # exposure, clipping, fireflies, flatness
 python SKILL_DIR/scripts/pipeline.py spec.json --out OUT   # spec -> build -> QA -> render -> export
 $B run SKILL_DIR/scripts/export_blend.py --blend s.blend -- --out out/model.glb --subjects
+# image-to-3D (references/image-to-3d.md)
+$B run SKILL_DIR/scripts/analyze_image.py -- front=f.png side=s.png --out an.json --debug-dir dbg
+python SKILL_DIR/scripts/ai3d/select_mode.py --analysis an.json --category robot   # Mode 1/2/3 + reasons
+python SKILL_DIR/scripts/ai3d/check.py                     # can this machine run local AI models?
+python SKILL_DIR/scripts/ai3d/install_model.py triposr     # dry run; --yes ONLY with the user's OK
+python SKILL_DIR/scripts/ai3d/run_model.py triposr --image f.png --out m.glb   # own process, offline
 ```
 Exit codes: 0 ok, 1 error (JSON `error` has type, message, failing line), 2 timeout, 3 setup.
 Long renders: run in the background; estimate first (`render.estimate`) on slow hardware.
@@ -99,6 +107,7 @@ Then: `bk.py validate` -> `bk.py preview --mode wire` -> Read sheet -> `bk.py re
 | QA method, defect catalogue, definition of done | `references/workflow-qa.md` | inspect, validate, preview |
 | Something is wrong (script or picture) | `references/troubleshooting.md` | - |
 | Batch/declarative scenes, export with verification | this file s.3, `examples/spec_desk.json` | build_from_spec, pipeline |
+| Image(s) -> 3D model: mode choice, Mode 1/2/3, hybrid, local AI, game prep (Godot/Unity) | `references/image-to-3d.md` | imageref, recon, gameprep; scripts/ai3d |
 
 ## 6. Hard rules (each one cost a real defect during testing)
 
@@ -124,6 +133,9 @@ Then: `bk.py validate` -> `bk.py preview --mode wire` -> Read sheet -> `bk.py re
 11. **Real-world scale** (metres): a mug is 0.095 m tall, a door 2.1 m. Lights, DOF, physics and
     bevels all depend on it.
 12. **Report honestly:** what was verified (numbers + images), what was not, known limitations.
+13. **Image-to-3D: say what is inferred** (the back of a single view, hidden depths, assumed size)
+    and gate local AI on `check.py` - never install without the user's OK, never retry what the
+    hardware check says cannot run; Mode 1/2 work on any machine.
 
 ## 7. Definition of done (visual deliverable)
 
@@ -147,6 +159,8 @@ Then: `bk.py validate` -> `bk.py preview --mode wire` -> Read sheet -> `bk.py re
 ## 9. Maintaining this skill
 
 After changing `bkit` or a script: `python SKILL_DIR/tests/run_tests.py --quick` (API smoke test +
-9 scenarios + pipeline, ~10 min) and look at `tests/output/run/overview.png`. New Blender version:
+9 scenarios + pipeline, ~10 min) and look at `tests/output/run/overview.png`. Image-to-3D:
+`python SKILL_DIR/tests/image_to_3d/run_i3d_tests.py [--skip-ai]` (5 reference sets, ~4 min) and
+look at `tests/output/i3d/overview.png`. New Blender version:
 run the suite there and update `references/compatibility.md` with what the probe and tests show.
 `tests/TESTING.md` records every defect the tests found - add new ones the same way.

@@ -139,7 +139,8 @@ def views(out_dir, objs=None, views=("camera", "persp", "front", "right", "top")
         sh = sc.display.shading
         for attr, val in (("light", "STUDIO"),
                           ("color_type", {"material": "MATERIAL", "clay": "SINGLE", "random": "RANDOM",
-                                          "wire": "MATERIAL"}[mode]),
+                                          "wire": "MATERIAL", "texture": "TEXTURE",
+                                          "vertex": "VERTEX"}[mode]),
                           ("single_color", (0.75, 0.75, 0.75)), ("show_cavity", True),
                           ("cavity_type", "BOTH"), ("show_object_outline", True),
                           ("show_specular_highlight", True), ("show_shadows", False)):

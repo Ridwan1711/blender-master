@@ -14,7 +14,7 @@ from bkit import preview as P
 ap = argparse.ArgumentParser()
 ap.add_argument("--out", required=True)
 ap.add_argument("--views", default="camera,persp,front,right,top")
-ap.add_argument("--mode", default="material", choices=["material", "clay", "random", "wire"])
+ap.add_argument("--mode", default="material", choices=["material", "clay", "random", "wire", "texture", "vertex"])
 ap.add_argument("--res", type=int, default=480)
 ap.add_argument("--objects")
 ap.add_argument("--margin", type=float, default=1.12)

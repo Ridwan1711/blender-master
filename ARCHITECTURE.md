@@ -1,6 +1,6 @@
 # Blender Master Skill — Architecture
 
-Status: v1.0, built and tested on Blender 4.5.10 LTS (Windows 11, Ryzen 7 1700, GTX 750 Ti 2 GB).
+Status: v1.1 (v1.0 + image-to-3D), built and tested on Blender 4.5.10 LTS (Windows 11, Ryzen 7 1700, GTX 750 Ti 4 GB).
 
 ## Design goals
 
@@ -32,6 +32,7 @@ SKILL.md                      orchestrator: loop, hard rules, routing table, CLI
 │   ├── animation-rigging.md  keyframes, slotted actions, constraints, armatures, skinning, camera moves
 │   ├── physics.md            rigid body, cloth, particles, baking headless
 │   ├── scene-performance.md  naming, collections, linking, files, polycount budgets, optimisation
+│   ├── image-to-3d.md        Mode 1/2/3 reconstruction, selector, local AI matrix + gating, game prep
 │   └── troubleshooting.md    symptom -> cause -> fix, for scripts and for pictures
 │
 ├── scripts/
@@ -48,6 +49,16 @@ SKILL.md                      orchestrator: loop, hard rules, routing table, CLI
 │   ├── export_blend.py       GLB/glTF/FBX/OBJ/USD export + re-import verification
 │   ├── pipeline.py           spec -> build -> validate -> preview -> render -> export -> report
 │   ├── package_skill.py      ZIP for claude.ai upload (folder as top-level entry)
+│   ├── procstats.py          peak RAM / CPU time of a finished child process (Windows + POSIX)
+│   ├── analyze_image.py      reference images -> style, grid, palette, segments, cross-view consistency
+│   ├── ai3d/                 Mode 3, standard library only, NEVER inside Blender's Python
+│   │   ├── hwprobe.py        GPU (nvidia-smi / registry), VRAM, compute capability, driver CUDA ceiling, RAM, disk
+│   │   ├── models.json       researched registry: licence, commercial terms, VRAM, CUDA, CPU, texture, sources
+│   │   ├── check.py          per-model verdict gpu | cpu | none with reasons (the gate)
+│   │   ├── install_model.py  dry run by default; isolated venv in ~/.cache/blender-master/ai3d
+│   │   ├── run_model.py      own process, low priority, offline, timeout, stats -> GLB
+│   │   ├── select_mode.py    Mode 1/2/3 scores with reasons, hybrid plans, inferred-surface list
+│   │   └── adapters/         triposr_infer.py (runs in the venv) + shims (torchmcubes, rembg)
 │   └── bkit/                 helper library imported by every build script
 │       ├── runtime.py        emit/warn/save (no-overwrite guard, versioned saves)
 │       ├── compat.py         version gates, engine ids, socket aliases, enum probing, overrides
@@ -67,11 +78,18 @@ SKILL.md                      orchestrator: loop, hard rules, routing table, CLI
 │       ├── rig.py            armatures (deterministic rolls), IK, binding, weight report, mannequin, walk
 │       ├── physics.py        rigid/cloth/collision, frame stepping, headless bake, settle report
 │       ├── inspect.py        scene report, mesh health, intersections, camera coverage, image stats
-│       └── validate.py       rule engine used by validate_blend.py
+│       ├── validate.py       rule engine used by validate_blend.py
+│       ├── imageref.py       image measuring (numpy): masks, palettes, segments, class maps,
+│       │                     morphology, straight members, line segments, corner radius, IoU
+│       ├── recon.py          voxel / components / hull / lathe / extrude / inflate builders, reference
+│       │                     planes, projection texturing, registration, silhouette compare, AI import+align
+│       └── gameprep.py       cleanup, normalize, decimate, LODs, material baking, engine export + verify
 │
 ├── examples/                 spec_desk.json + README (which example to start from)
 └── tests/
     ├── scenarios/            s01..s09 build scripts (one capability each)
+    ├── image_to_3d/          make_refs.py (reference sets), t1..t5 cases, common.py (QA/export),
+    │                         run_i3d_tests.py (selector -> build -> acceptance -> overview.png)
     ├── run_tests.py          build -> validate -> assertions -> render -> imgcheck -> RESULTS.md + overview.png
     └── TESTING.md            method, results, defects found and fixed, limitations
 ```
@@ -114,7 +132,20 @@ Claude ──bk.py validate / preview──> PNG contact sheet ──Read tool�
 | Workbench | 2.1 s | geometry previews |
 | EEVEE Next | 26 s first render | shader compile dominates; later frames are fast |
 | Cycles CPU 64 spp + OIDN | 2.5 s | 16 threads |
-| Cycles CUDA 64 spp + OIDN | 2.1 s | 2 GB VRAM: heavy scenes must fall back to CPU |
+| Cycles CUDA 64 spp + OIDN | 2.1 s | 4 GB VRAM (Maxwell): heavy scenes must fall back to CPU |
+
+## Image-to-3D process model
+
+```
+reference images ──analyze_image.py (Blender)──> analysis.json ──select_mode.py──> Mode 1 | 2 | 3 | hybrid
+                                                          check.py (hardware gate) ─┘
+Mode 3: run_model.py ──separate venv process (low priority, offline)──> GLB ──recon.import_mesh/align──┐
+Mode 1/2: recon + imageref builders inside Blender ───────────────────────────────────────────────────┤
+                                       common pipeline: normalize -> compare_views -> bake -> report ─┘
+                                       -> GLB (Godot) + FBX (Unity), each re-imported and verified
+```
+AI inference never runs inside Blender: a crash, an out-of-memory kill or a hung model cannot take
+the Blender session down, and Blender's Python never receives PyTorch.
 
 ## Extension points (not in v1)
 

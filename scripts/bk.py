@@ -133,6 +133,11 @@ def run_blender(script=None, expr=None, blend=None, args=None, save=None, overwr
         logf.write(text)
     elapsed = time.time() - t0
     try:
+        import procstats  # peak RAM / CPU time of the Blender process
+        pstats = procstats.collect(proc)
+    except Exception:  # noqa: BLE001
+        pstats = {}
+    try:
         os.remove(cfg_path)
     except OSError:
         pass
@@ -144,6 +149,8 @@ def run_blender(script=None, expr=None, blend=None, args=None, save=None, overwr
                 result = json.loads(line[len(MARK):].strip())
             except ValueError:
                 result = {"status": "error", "error": {"message": "unparseable result line"}}
+    if result is not None and pstats:
+        result["process"] = dict(pstats, wall_seconds=round(elapsed, 2))
     if timed_out:
         code = 2
     elif proc.returncode != 0 or result is None or result.get("status") != "ok":

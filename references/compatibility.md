@@ -41,11 +41,11 @@ items through `bl_rna...enum_items` in background mode - never enumerate them th
 | Add-ons | `addon_utils` modules | same | 4.2+ extensions (`bl_ext.<repo>.<name>`) (V: Meshy add-on seen as bl_ext.user_default.meshy) | same | enable by full module name |
 | Light temperature | colour only | same | colour only | check probe | `lighting.kelvin()` (works everywhere) |
 
-## Known behaviour on 4.5.10 (V, Windows, GTX 750 Ti 2 GB, Ryzen 7 1700)
+## Known behaviour on 4.5.10 (V, Windows, GTX 750 Ti 4 GB, Ryzen 7 1700)
 
 - Headless rendering works for Workbench, EEVEE Next and Cycles (CPU and CUDA). OptiX: no device.
 - EEVEE Next: first render in a process compiles shaders (26-38 s on this GPU), later frames ~4 s at 960x540.
-- Cycles CPU vs CUDA on a 2 GB Maxwell card: about equal for small scenes; CPU is the safe default
+- Cycles CPU vs CUDA on a 4 GB Maxwell card: about equal for small scenes; CPU is the safe default
   (`BKIT_DEVICE=CPU`) because large scenes exceed VRAM.
 - `bpy.ops.rigidbody.bake_to_keyframes` fails headless (internal UI-only operator). Use `physics.bake_to_keyframes`.
 - `object.parent_set(type="ARMATURE_AUTO")` (automatic weights) works headless with an override.
